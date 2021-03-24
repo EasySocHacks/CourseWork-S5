@@ -1,0 +1,74 @@
+terminals:
+    + : WHITESPACELESS
+    - : WHITESPACELESS
+    * : WHITESPACELESS
+    / : WHITESPACELESS
+    num : NUMBER
+    ( : WHITESPACELESS
+    ) : WHITESPACELESS
+    << : WHITESPACELESS
+    >> : WHITESPACELESS
+non-terminals:
+    S {ans}
+    PLUS {ans}
+    MINUS {ans}
+    MULTIPLY {ans}
+    DIVIDE {ans}
+    VARIABLE {ans}
+    BIT {ans}
+start-non-terminal: S
+rules:
+    S -> BIT { ([0], [1]) ->
+        args.get(0).get("ans").setValue(args.get(1).get("ans").getValue());
+    }
+
+    BIT -> PLUS { ([0], [1]) -> $Translator0 }
+
+    BIT -> BIT << PLUS { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+        (int)args.get(1).get("ans").getValue() <<
+        (int)args.get(2).get("ans").getValue());
+    }
+
+    BIT -> BIT >> PLUS { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+        (int)args.get(1).get("ans").getValue() >>
+        (int)args.get(2).get("ans").getValue());
+    }
+
+    PLUS -> PLUS + MINUS { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+        (int)args.get(1).get("ans").getValue() +
+        (int)args.get(2).get("ans").getValue());
+    }
+
+    PLUS -> MINUS { ([0], [1]) -> $Translator0 }
+
+    MINUS -> MINUS - MULTIPLY { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+        (int)args.get(1).get("ans").getValue() -
+        (int)args.get(2).get("ans").getValue());
+    }
+    MINUS -> MULTIPLY { ([0], [1]) -> $Translator0 }
+
+    MULTIPLY -> MULTIPLY * DIVIDE { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+        (int)args.get(1).get("ans").getValue() *
+        (int)args.get(2).get("ans").getValue());
+    }
+
+    MULTIPLY -> DIVIDE { ([0], [1]) -> $Translator0 }
+
+    DIVIDE -> DIVIDE / VARIABLE { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+            (int)args.get(1).get("ans").getValue() /
+            (int)args.get(2).get("ans").getValue());
+    }
+
+    DIVIDE -> VARIABLE { ([0], [1]) -> $Translator0 }
+
+    VARIABLE -> ( S ) { ([0], [2]) -> $Translator0 }
+
+    VARIABLE -> num { ([0], [1]) ->
+        args.get(0).get("ans").setValue(Integer.parseInt((String)args.get(1).get("extraValue").getValue()));
+    }

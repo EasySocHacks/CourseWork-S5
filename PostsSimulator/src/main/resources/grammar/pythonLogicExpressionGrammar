@@ -1,0 +1,60 @@
+terminals:
+    xor
+    or
+    and
+    not
+    ( : WHITESPACELESS
+    ) : WHITESPACELESS
+    var : VARIABLE
+non-terminals:
+    S {table, ans}
+    XOR {table, ans}
+    OR {table, ans}
+    AND {table, ans}
+    NOT {table, ans}
+    BRACKETS {table, ans}
+start-non-terminal: S
+rules:
+    S -> XOR[ ([1], [0]) ->
+        args.get(0).get("table").setValue(args.get(1).get("table").getValue());
+    ] { ([0], [1]) ->
+        args.get(0).get("ans").setValue(args.get(1).get("ans").getValue());
+    }
+
+    XOR -> OR[ ([1], [0]) -> $Translator0 ] xor XOR[ ([3], [0]) -> $Translator0 ] { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+            (boolean)args.get(1).get("ans").getValue() ^
+            (boolean)args.get(2).get("ans").getValue());
+    }
+
+    XOR -> OR[ ([1], [0]) -> $Translator0 ] { ([0], [1]) -> $Translator1 }
+
+    OR -> AND[ ([1], [0]) -> $Translator0 ] or OR[ ([3], [0]) -> $Translator0 ] { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+            (boolean)args.get(1).get("ans").getValue() |
+            (boolean)args.get(2).get("ans").getValue());
+    }
+
+    OR -> AND[ ([1], [0]) -> $Translator0 ] { ([0], [1]) -> $Translator1 }
+
+    AND -> NOT[ ([1], [0]) -> $Translator0 ] and AND[ ([3], [0]) -> $Translator0 ] { ([0], [1], [3]) ->
+        args.get(0).get("ans").setValue(
+            (boolean)args.get(1).get("ans").getValue() &
+            (boolean)args.get(2).get("ans").getValue());
+    }
+
+    AND -> NOT[ ([1], [0]) -> $Translator0 ] { ([0], [1]) -> $Translator1 }
+
+    NOT -> not NOT[ ([2], [0]) -> $Translator0 ] { ([0], [2]) ->
+        args.get(0).get("ans").setValue(
+            !(boolean)args.get(1).get("ans").getValue());
+    }
+
+    NOT -> BRACKETS[ ([1], [0]) -> $Translator0 ] { ([0], [1]) -> $Translator1 }
+
+    BRACKETS -> ( S[ ([2], [0]) -> $Translator0 ] ) { ([0], [2]) -> $Translator1 }
+
+    BRACKETS -> var { ([0], [1]) ->
+        args.get(0).get("ans").setValue(((Table) args.get(0).get("table").
+            getValue()).getValue(((String)args.get(1).get("extraValue").getValue()).charAt(0)));
+    }
